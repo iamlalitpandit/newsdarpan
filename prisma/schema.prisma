@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?   // Hashed password
+  emailVerified DateTime?
+  image         String?
+  level         Int       @default(0) // Levels 0-11 as per blueprint
+  role          String?   // Friendly role name
+  accounts      Account[]
+  sessions      Session[]
+  stories       Story[]   @relation("SubmittedBy")
+  approvals     Story[]   @relation("ApprovedBy")
+  auditLogs     AuditLog[]
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Story {
+  id              String    @id @default(cuid())
+  title           String
+  content         String    @db.Text
+  hindiTitle      String?
+  hindiContent    String?   @db.Text
+  status          String    @default("DRAFT") // DRAFT, PENDING, PUBLISHED, REJECTED
+  submitterId     String
+  submitter       User      @relation("SubmittedBy", fields: [submitterId], references: [id])
+  approverId      String?
+  approver        User?     @relation("ApprovedBy", fields: [approverId], references: [id])
+  region          String?
+  state           String?
+  district        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  publishedAt     DateTime?
+  auditLogs       AuditLog[]
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?  @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  storyId   String?
+  story     Story?    @relation(fields: [storyId], references: [id])
+  createdAt DateTime @default(now())
+}
