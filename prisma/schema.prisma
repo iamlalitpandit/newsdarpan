@@ -11,6 +11,7 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
+  password      String?   // Hashed password
   emailVerified DateTime?
   image         String?
   level         Int       @default(0) // Levels 0-11 as per blueprint

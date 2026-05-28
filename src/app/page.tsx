@@ -64,7 +64,7 @@ export default function Dashboard() {
     )
   }
 
-  const userLevel = (session.user as any).level
+  const userLevel = session.user.level
 
   return (
     <div className="container mx-auto p-6 space-y-6">

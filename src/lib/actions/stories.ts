@@ -1,14 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 
-export async function createStory(data: { title: string, content: string, hindiTitle?: string, hindiContent?: string }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) throw new Error("Unauthorized")
-
-  const userLevel = (session.user as any).level
-  const userId = (session.user as any).id
-
+export async function createStory(userId: string, userLevel: number, data: { title: string, content: string, hindiTitle?: string, hindiContent?: string }) {
   // Status logic based on user level
   // Level 7+ can self-publish, others go to PENDING
   const status = userLevel >= 7 ? "PUBLISHED" : "PENDING"
@@ -34,13 +26,7 @@ export async function createStory(data: { title: string, content: string, hindiT
   return story
 }
 
-export async function approveStory(storyId: string) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) throw new Error("Unauthorized")
-
-  const userLevel = (session.user as any).level
-  const userId = (session.user as any).id
-
+export async function approveStory(userId: string, userLevel: number, storyId: string) {
   const story = await prisma.story.findUnique({
     where: { id: storyId },
     include: { submitter: true }
